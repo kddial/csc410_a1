@@ -3,7 +3,7 @@ from z3 import *
 
 # Checks the usage in the command line
 if len(sys.argv) != 2:
-    print "Usage: python knapsack.py <input_file>"
+    print("Usage: python knapsack.py <input_file>")
     sys.exit(0)
 
 # Opens the file passed in the command line for reading
@@ -54,7 +54,7 @@ if isSAT == sat:
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
     
-    print "NP-Completed."
+    print("NP-Completed.")
 else:
-    print "This is NP too hard."
+    print("This is NP too hard.")
 

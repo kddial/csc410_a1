@@ -3,7 +3,7 @@ from z3 import *
 
 # Checks the usage in the command line
 if len(sys.argv) != 2:
-    print "Usage: python sorting.py <input_file>"
+    print("Usage: python sorting.py <input_file>")
     sys.exit(0)
 
 # Opens the file passed in the command line for reading
@@ -50,7 +50,7 @@ isSAT = solver.check()
 # print the result
 if isSAT == sat:
     m = solver.model()
-    print [m[Y[i]] for i in range(n)]
+    print([m[Y[i]] for i in range(n)])
 else:
-    print "Inconceivable! The specification must always be satisfiable."
+    print("Inconceivable! The specification must always be satisfiable.")
 

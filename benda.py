@@ -3,7 +3,7 @@ from z3 import *
 
 # Checks the usage in the command line
 if len(sys.argv) != 2:
-    print "Usage: python benda.py <input_file>"
+    print("Usage: python benda.py <input_file>")
     sys.exit(0)
 
 # Opens the file passed in the command line for reading
@@ -49,7 +49,7 @@ if isSAT == sat:
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
 
-    print "Bender's back!."
+    print("Bender's back!.")
 else:
-    print "Hey! Don't violate Keeler's Theorem."
+    print("Hey! Don't violate Keeler's Theorem.")
 
