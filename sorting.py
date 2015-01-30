@@ -35,25 +35,28 @@ Y = [Int("y%i" % i) for i in range(n)]
 ##################  Your Code Here  #####################
 
 # The final formula going in. Change this to your actual formula
-#F = (X + Y > 3, fkdjhkfsd',. sdgsdfg, dgsdf)
-#F = simplify(Bool('p')==Bool('p'))
-#F = (X[0] == in_list[0], X[1] == in_list[1], Y[0] < Y[1], Y[0] == X[0] or Y[0] == X[1] and Y[1] == X[0] or Y[1] == X[1])
-#F = (Y[0] == X[0] and Y[1] == X[1] and Y[1] == 99 or y[1] == 98, X[0] == in_list[0], X[1] == in_list[1], Y[0] < Y[1])
-#F = ((Y[0] == X[0]) and (Y[1] == X[1]) and (X[0] == in_list[0]) and (X[1] == in_list[1]) and (Y[0] < Y[1]))
-#F = ((X[0] == in_list[0]), (X[1] == in_list[1]), (Y[0] < Y[1]), (Y[0] == X[0] or Y[0] == X[1]), (Y[1] == X[0] or Y[1] == X[1]))
-F = ((X[0] == in_list[0]), (X[1] == in_list[1]), And(Y[0] < Y[1], Or(Y[0] == X[0], Y[0] == X[1]), Or(Y[1] == X[0], Y[1] == X[1])))
-#for i in range(n-1):
-#	F = F + (Y[i] < Y[i+1])
+
+# Set X constraints
+X_const = [X[i] == in_list[i] for i in range(n)]
+
+# Set Y constraints
+Y_const = [And(Y[i] < Y[i+1]) for i in range(n-1)]
+for i in range(n):
+	Y_const = Y_const + [Or(tuple(Y[i] == X[j] for j in range(n)))]
+
+F = X_const + Y_const
+
+# debugging purposes
+print 'X constraint:', X_const
+print 'Y constraint:', Y_const
+
+
 #########################################################
 #         Call the solver and print the answer          #
 #########################################################
 
 # a Z3 solver instance
 solver = Solver()
-
-#for i in range(n):
-#	solver.add(X[i] == in_list[i])
-
 # add all constraints
 solver.add(F)
 # run Z3
