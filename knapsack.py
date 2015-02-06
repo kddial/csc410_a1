@@ -35,6 +35,12 @@ items = map(lambda p: map(int, p.split(",")), items)
 
 # The final formula going in. Change this to your actual formula
 
+z,k = Ints('z k')
+#setup python variables
+n = len(items)
+CV = [Int("CV%i" % i) for i in range(n)] # chosen values
+CW = [Int("CW%i" % i) for i in range(n)] # chosen weights
+
 #z3 helper functions
 def z3sum(X): # From instructors hint on Piazza @58
    if X == []:
@@ -44,27 +50,24 @@ def z3sum(X): # From instructors hint on Piazza @58
 
 def range_j(n, j):
    result = range(0, j) + range(j + 1, n)
+   #if j != -1:
+   		#result.append(-1)
    return result
 
-z,k = Ints('z k')
+def gcd(items,z,CV,CW):
+    return And(common_divisor(items,z,CV,CW), 
+               ForAll(k,Implies(common_divisor(items,k,CV,CW),k<=z)))
 
-def gcd(items,z):
-    return And(common_divisor(items,z), 
-               ForAll(k,Implies(common_divisor(items,k),k<=z)))
-
-def common_divisor(items,z):
-	#setup python variables
-	n = len(items)
+def common_divisor(items,z,CV,CW):
 
 	#setup Z3 variables
 	Vl = [Int("V%i" % i) for i in range(n)] # value list
 	Wl = [Int("W%i" % i) for i in range(n)] # weight list
-	CV = [Int("CV%i" % i) for i in range(n)] # chosen values
-	CW = [Int("CW%i" % i) for i in range(n)] # chosen weights
+	#CV = [Int("CV%i" % i) for i in range(n)] # chosen values
+	#CW = [Int("CW%i" % i) for i in range(n)] # chosen weights
 	CVi = [Int("CVi%i" % i) for i in range(n)] # chosen value index
 	CWi = [Int("CWi%i" % i) for i in range(n)] # chosen weight index
-	TV = [Int("TV%i" % i) for i in range(n)] # total value
-
+	#TV = [Int("TV%i" % i) for i in range(n)] # total value
 	c1 = And([Vl[i] == items[i][0] for i in range(n)])
 	c2 = And([Wl[i] == items[i][1] for i in range(n)])
 	c3 = (z3sum(Vl) >= V) # Max possible value of summing all items must exceed min value
@@ -74,11 +77,14 @@ def common_divisor(items,z):
 	c7 = (z3sum(CV) >= V)
 	c8 = And([CWi[i] == CVi[i] for i in range(n)])
 	c9 = And([CWi[i] != CVi[j] for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n)
-	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9)
+	c10 = And(z == z3sum(CV))
+
+	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10)
 
 
-
-F = [gcd(items,z)]
+F = gcd(items,z,CV,CW)
+#F = common_divisor(items, z, CV, CW)
+print F
 ##########################################################
 #         Call the solver and print the answer          #
 #########################################################
@@ -92,6 +98,7 @@ isSAT = solver.check()
 # print the result
 if isSAT == sat:
     m = solver.model()
+    #print m
     print'Weights:'
     print([m[CW[i]] for i in range(n)])
     print'Values:'
