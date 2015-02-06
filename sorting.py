@@ -47,6 +47,8 @@ Y_const1 = ([(Y[i] <= Y[i+1]) for i in range(n-1)])
 Y_const2 =  [And([Y[i] == X[P[j][i]]  for i in range(n) ]) for j in range(len(P))]
 
 F = And(X_const + Y_const1 + [Or(Y_const2)])
+
+print F
 #########################################################
 #         Call the solver and print the answer          #
 #########################################################
@@ -62,4 +64,4 @@ if isSAT == sat:
     m = solver.model()
     print([m[Y[i]] for i in range(n)])
 else:
-    print("Inconceivable! The specification must always be satisfiable.")
+    print("Inconceivable! The specification must always be satisfiable.") 
