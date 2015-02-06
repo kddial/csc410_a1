@@ -1,17 +1,17 @@
 import sys
 from z3 import *
 
-def z3sort(i,X):
-   if len(X) == 1:
-      return [Y[i] == X[0]]
-   else:
-      return [Y[i] == X[0]] + z3sort(i, X[1:])
+def z3sort(n,i,X):
+   l = []
+   for z in range(n):
+   		if z != i:
+   			l.append(Y[z] != X[0])
 
-#def z3sort(n,i,X):
-#   if len(X) == 1:
-#      return [Y[i] == X[0]]
-#   else:
-#      return [(Y[i] == X[0], And([Y[z] != X[0] for z in range(n)])] + z3sort(i, X[1:])
+   if len(X) == 1:
+      return [And([Y[i] == X[0]] + l)]
+   else:
+      return [And([Y[i] == X[0]] + l)] + z3sort(n, i, X[1:])
+      #return [(Y[i] == X[0]), And(l)] + z3sort(n, i, X[1:])
 
 # Checks the usage in the command line
 if len(sys.argv) != 2:
@@ -58,9 +58,9 @@ Y_const1 = ([(Y[i] <= Y[i+1]) for i in range(n-1)])
 #Y2_const = [Or(tuple(Y[i] == X[j] for i in range(n-1) for j in range(n-1)))]
 #Y2_const = [Or(tuple(Y[i] == X[1:] for i in range(n-1)))]
 
-Y_const2 = [Or(z3sort(i,X)) for i in range(n)]
-
-
+Y_const2 = [Or(z3sort(n,i,X)) for i in range(n)]
+#Y_const2 = And([Or(z3sort(i,X, n-1)) for i in range(n)])
+#Y_const2 = [Or([And(z3sort(n,i,X)) for i in range(n)])]
 
 #Y_const = Y2_const + Y1_const
 #Y_const = Y1_const + Y2_const
@@ -69,8 +69,8 @@ Y_const2 = [Or(z3sort(i,X)) for i in range(n)]
 #for i in range(n):
 #	Y_const = Y_const + [Or(tuple(Y[i] == X[j] for j in range(n)))]
 
-F = And(X_const + Y_const1 + Y_const2)
-
+#F = And(X_const + Y_const1 + Y_const2)
+F = And(X_const + Y_const1 + [And(Y_const2)])
 # debugging purposes
 print 'X constraint:', X_const
 print 'Y1 constraint:', Y_const1
