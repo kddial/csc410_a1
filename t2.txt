@@ -5,3 +5,14 @@
 6
 15
 [[2,6],[5,9],[4,8]]
+
+def divides(x,y):
+    return x%y==0
+
+def common_divisor(x,y,z):
+    return And(1<=z,z<=x,z<=y,divides(x,z),divides(y,z))
+
+def gcd(x,y,z):
+    return And(common_divisor(x,y,z), 
+               ForAll(k,Implies(common_divisor(x,y,k),k<=z)))
+

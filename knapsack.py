@@ -47,69 +47,38 @@ def range_j(n, j):
    return result
 
 z,k = Ints('z k')
-n,m =in_list[0],in_list[1]
 
-def divides(x,y):
-    return x%y==0
+def gcd(items,z):
+    return And(common_divisor(items,z), 
+               ForAll(k,Implies(common_divisor(items,k),k<=z)))
 
-def common_divisor(x,y,z):
-    return And(1<=z,z<=x,z<=y,divides(x,z),divides(y,z))
+def common_divisor(items,z):
+	#setup python variables
+	n = len(items)
 
-def gcd(x,y,z):
-    return And(common_divisor(x,y,z), 
-               ForAll(k,Implies(common_divisor(x,y,k),k<=z)))
+	#setup Z3 variables
+	Vl = [Int("V%i" % i) for i in range(n)] # value list
+	Wl = [Int("W%i" % i) for i in range(n)] # weight list
+	CV = [Int("CV%i" % i) for i in range(n)] # chosen values
+	CW = [Int("CW%i" % i) for i in range(n)] # chosen weights
+	CVi = [Int("CVi%i" % i) for i in range(n)] # chosen value index
+	CWi = [Int("CWi%i" % i) for i in range(n)] # chosen weight index
+	TV = [Int("TV%i" % i) for i in range(n)] # total value
 
-MAX = 0
- 
-X = [1,2,3,1]
-N = len(X)
-c_instance = [Int("c%s" % i) for i in range(N)]
- 
-X_var = [Int("x%s" % i) for i in range(N)]
- 
-#And (0<= x0, x0 <=1)
-X_var_c = [Or(0 == X_var[i], X_var[i] == 1) for i in range(N)]
- 
-# Create a list containing X[i]+Y[i]
-X_times_X_var = [ c_instance[i]*X_var[i] for i in range(N) ]
- 
-input_c = [And([c_instance[i] == X[i] for i in range(N)])]
- 
-sum_c = [z3sum(X_times_X_var) >= MAX]
- 
-def valid_value(X, MAX):
-        return [z3sum(X) >= MAX]
- 
-def max_values(X):
-    return And(valid_value(X, MAX),
-               ForAll(X_var,Implies(valid_value(X_var, MAX), z3sum(X_var) >= X)))
+	c1 = And([Vl[i] == items[i][0] for i in range(n)])
+	c2 = And([Wl[i] == items[i][1] for i in range(n)])
+	c3 = (z3sum(Vl) >= V) # Max possible value of summing all items must exceed min value
+	c4 = And([Or([And(CW[j] == Wl[i], CWi[j] == i) for i in range(n)] + [And(CW[j] == 0, CWi[j] == -1)]) for j in range(n)])
+	c5 = And([Or([And(CV[j] == Vl[i], CVi[j] == i) for i in range(n)] + [And(CV[j] == 0, CVi[j] == -1)]) for j in range(n)])
+	c6 = (z3sum(CW) <= W)
+	c7 = (z3sum(CV) >= V)
+	c8 = And([CWi[i] == CVi[i] for i in range(n)])
+	c9 = And([CWi[i] != CVi[j] for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n)
+	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9)
 
-#setup python variables
-n = len(items)
 
-#setup Z3 variables
-Vl = [Int("V%i" % i) for i in range(n)] # value list
-Wl = [Int("W%i" % i) for i in range(n)] # weight list
-CV = [Int("CV%i" % i) for i in range(n)] # chosen values
-CW = [Int("CW%i" % i) for i in range(n)] # chosen weights
-CVi = [Int("CVi%i" % i) for i in range(n)] # chosen value index
-CWi = [Int("CWi%i" % i) for i in range(n)] # chosen weight index
-TV = [Int("TV%i" % i) for i in range(n)] # total value
 
-c1 = And([Vl[i] == items[i][0] for i in range(n)])
-c2 = And([Wl[i] == items[i][1] for i in range(n)])
-c3 = (z3sum(Vl) >= V) # Max possible value of summing all items must exceed min value
-c4 = And([Or([And(CW[j] == Wl[i], CWi[j] == i) for i in range(n)] + [And(CW[j] == 0, CWi[j] == -1)]) for j in range(n)])
-c5 = And([Or([And(CV[j] == Vl[i], CVi[j] == i) for i in range(n)] + [And(CV[j] == 0, CVi[j] == -1)]) for j in range(n)])
-c6 = (z3sum(CW) <= W)
-c7 = (z3sum(CV) >= V)
-c8 = And([CWi[i] == CVi[i] for i in range(n)])
-c9 = And([CWi[i] != CVi[j] for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n)
-c10 = (True) # Maximizing constraint  
-
-F = And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10)
-
-print F
+F = [gcd(items,z)]
 ##########################################################
 #         Call the solver and print the answer          #
 #########################################################
