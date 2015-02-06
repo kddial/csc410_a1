@@ -1,6 +1,5 @@
 import sys
 from z3 import *
-from itertools import permutations
 
 # Checks the usage in the command line
 if len(sys.argv) != 2:
@@ -33,12 +32,11 @@ Y = [Int("y%i" % i) for i in range(n)]
 #########################################################
 
 ##################  Your Code Here  #####################
-
+from itertools import permutations
 items = range(n)
 P = []
 for x in permutations(items):
     P.append(list(x))
-print P
 # The final formula going in. Change this to your actual formula
 
 # Set X constraints
@@ -46,16 +44,9 @@ X_const = ([X[i] == in_list[i] for i in range(n)])
 
 # Set Y constraints
 Y_const1 = ([(Y[i] <= Y[i+1]) for i in range(n-1)])
-Y_const2 =  [And([Y[i] == X[P[j][i]]  for i in range(n) ]) for j in range(len(P)-1)]
+Y_const2 =  [And([Y[i] == X[P[j][i]]  for i in range(n) ]) for j in range(len(P))]
 
 F = And(X_const + Y_const1 + [Or(Y_const2)])
-# debugging purposes
-print 'X constraint:', X_const
-print 'Y1 constraint:', Y_const1
-print 'Y2 constraint:', Y_const2
-print F
-
-
 #########################################################
 #         Call the solver and print the answer          #
 #########################################################
@@ -72,9 +63,3 @@ if isSAT == sat:
     print([m[Y[i]] for i in range(n)])
 else:
     print("Inconceivable! The specification must always be satisfiable.")
-
-# def z3sort(X):
-#    if X=[]:
-#       return 0
-#    else:
-#       return X[0] + z3sum(X[1:])
