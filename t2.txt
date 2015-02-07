@@ -1,11 +1,10 @@
-10
-10
-[[1,1],[10,10],[0,0],[0,0]]
+1
+1
+[]
 
 0
-1
+23
 [[2,6],[5,9],[4,8],[0,1]]
-
 
 0
 100
@@ -35,3 +34,4 @@ def gcd(x,y,z):
     return And(common_divisor(x,y,z), 
                ForAll(k,Implies(common_divisor(x,y,k),k<=z)))
 
+	#c10 = And([Implies(And((TW + Wl[i]) <= W, Vl[i] > 0), Or([CWi[z] == i for z in range(n)])) for i in range(n)])
