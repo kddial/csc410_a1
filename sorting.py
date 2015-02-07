@@ -37,14 +37,17 @@ Y = [Int("y%i" % i) for i in range(n)]
 # The final formula going in. Change this to your actual formula
 
 # Set X constraints
-X_const = [X[i] == in_list[i] for i in range(n)]
+#X_const = [X[i] == in_list[i] for i in range(n)]
+#
+## Set Y constraints
+#Y_const = [And(Y[i] < Y[i+1]) for i in range(n-1)]
+#for i in range(n):
+#	Y_const = Y_const + [Or(tuple(Y[i] == X[j] for j in range(n)))]
+#
+#F = X_const + Y_const
 
-# Set Y constraints
-Y_const = [And(Y[i] < Y[i+1]) for i in range(n-1)]
-for i in range(n):
-	Y_const = Y_const + [Or(tuple(Y[i] == X[j] for j in range(n)))]
-
-F = X_const + Y_const
+F = ((X[0] == in_list[0]), (X[1] == in_list[1]), And(Y[0] < Y[1], Or(Y[0] == X[0], Y[0] == X[1]), Or(Y[1] == X[0], Y[1] == X[1])))
+#for i in range(n-1):
 
 # debugging purposes
 print 'X constraint:', X_const
