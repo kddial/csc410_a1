@@ -79,16 +79,24 @@ def common_divisor(items,z,CV,CW):
 	c9 = And([CWi[i] != CVi[j] for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) # but = -1 is fine
 	c9 = And([Or(CWi[i] != CVi[j], CWi[i] == -1) for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) # but = -1 is fine
 	c10 = And([CWi[i] == CVi[i] for i in range(n)])
-	c11 = And(z == z3sum(CV))
+	#c11 = And([z3sum(CW) + Wl[i] <= W for i in range(n)])
+	#c11 = And([And(z3sum(CW) + Wl[i] > W, CWi[j] != i) for i in range(n) for j in range(n)])
+	#c11 = And([Or([And(CW[j] == Wl[i], CWi[j] == i) for i in range(n)] + [And(CW[j] == 0, CWi[j] == -1)]) for j in range(n)])
+	c11 = And([And((z3sum(CW) + Wl[i]) >= W, Or([CWi[z] == i for z in range(n)])) for i in range(n)])
+	c12 = And(z == z3sum(CV))
+	# find not weight
+	# and index does not ewqual something
 	#c10 = And(z == 0)
 	#c10 = True
 	#c10 = And(z > V, z <= z3sum(CV))
 
-	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11)
+	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12)
+	#return And(c1, c2, c3, c4, c5, c8, c9, c10, c11, c6,c7,c12)
 
+# and Wi + Wz > W
 
-F = gcd(items,z,CV,CW)
-#F = common_divisor(items, z, CV, CW)
+#F = gcd(items,z,CV,CW)
+F = common_divisor(items, z, CV, CW)
 print F
 ##########################################################
 #         Call the solver and print the answer          #
