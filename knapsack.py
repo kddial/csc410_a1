@@ -63,8 +63,8 @@ c5 = And([Or([And(CV[j] == Vl[i], CVi[j] == i) for i in range(n)] + [And(CV[j] =
 c6 = (z3sum(CW) <= W)
 c7 = (z3sum(CV) >= V)
 c8 = And([CV[i] >= CV[i+1] for i in range(n-1)])
-c9 = And([CWi[i] != CVi[j] for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) # but = -1 is fine
-c9 = And([Or(CWi[i] != CVi[j], CWi[i] == -1) for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) # but = -1 is fine
+c9 = And([CWi[i] != CVi[j] for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n)
+c9 = And([Or(CWi[i] != CVi[j], CWi[i] == -1) for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) but = -1 is fine
 c10 = And([CWi[i] == CVi[i] for i in range(n)])
 c11 = And([Or((z3sum(CW) + Wl[i]) > W, Or([CWi[z] == i for z in range(n)])) for i in range(n)])
 
