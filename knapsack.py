@@ -85,16 +85,10 @@ isSAT = solver.check()
 # print the result
 if isSAT == sat:
     m = solver.model()
-    #print m
     print'Values:'
     print([m[CV[i]] for i in range(n)])
     print'Weights:'
     print([m[CW[i]] for i in range(n)])
-    #print m
-    print'Z:'
-    print(m[z])
-    print'K:'
-    print(m[k])
     ##################  Your Code Here  #####################
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
