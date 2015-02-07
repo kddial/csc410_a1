@@ -38,6 +38,19 @@ items = map(lambda p: map(int, p.split(",")), items)
 #setup python variables
 n = len(items)
 
+#setup Z3 variables
+Vl = [Int("V%i" % i) for i in range(n)] # value list
+Wl = [Int("W%i" % i) for i in range(n)] # weight list
+CV = [Int("CV%i" % i) for i in range(n)] # chosen values
+CW = [Int("CW%i" % i) for i in range(n)] # chosen weights
+CVi = [Int("CVi%i" % i) for i in range(n)] # chosen value index
+CWi = [Int("CWi%i" % i) for i in range(n)] # chosen weight index
+TV = Int("TV") # chosen value total
+TW = Int("TW") # chosen weight total
+Z = Int("Z") # maximizing value
+K = Int("K") # all other values
+S = [Int("S%i" % i) for i in range(n)] # solution array
+
 # Helper functions
 def z3sum(X): # From instructors hint on Piazza @58
    if X == []:
@@ -49,32 +62,30 @@ def range_j(n, j):
    result = range(0, j) + range(j + 1, n)
    return result
 
-Vl = [Int("V%i" % i) for i in range(n)] # value list
-Wl = [Int("W%i" % i) for i in range(n)] # weight list
-CV = [Int("CV%i" % i) for i in range(n)] # chosen values
-CW = [Int("CW%i" % i) for i in range(n)] # chosen weights
-CVi = [Int("CVi%i" % i) for i in range(n)] # chosen value index
-CWi = [Int("CWi%i" % i) for i in range(n)] # chosen weight index
-TV = Int("TV") # chosen value total
-TW = Int("TW") # chosen weight total
-S = [Int("S%i" % i) for i in range(n)] # solution array
-c1 = And([Vl[i] == items[i][0] for i in range(n)])
-c2 = And([Wl[i] == items[i][1] for i in range(n)])
-c3 = (z3sum(Vl) >= V) # Max possible value of summing all items must exceed min value
-c4 = And([Or([And(CW[j] == Wl[i], CWi[j] == i) for i in range(n)] + [And(CW[j] == 0, CWi[j] == -1)]) for j in range(n)])
-c5 = And([Or([And(CV[j] == Vl[i], CVi[j] == i) for i in range(n)] + [And(CV[j] == 0, CVi[j] == -1)]) for j in range(n)])
-c6 = (TW <= W)
-c7 = (TV >= V)
-c8 = And([Or(CWi[i] != CVi[j], CWi[i] == -1) for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) but = -1 is fine
-c9 = And([CWi[i] == CVi[i] for i in range(n)])
-c10 = And([Implies((TW + Wl[i]) <= W, Or([CWi[z] == i for z in range(n)])) for i in range(n)])
-c11 = And([Implies(CVi[i] != -1, S[i] == 1) for i in range(n)])
-c12 = And([Implies(CVi[i] == -1, S[i] == 0) for i in range(n)])
-c13 = (TV == z3sum(CV))
-c14 = (TW == z3sum(CW))
+def knapsack(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S):
+    return And(knapsack_helper(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S), 
+               ForAll(K, Implies(knapsack_helper(items, K, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S), K <= Z)))
 
-F = And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14)
+def knapsack_helper(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S):
+	c1 = And([Vl[i] == items[i][0] for i in range(n)])
+	c2 = And([Wl[i] == items[i][1] for i in range(n)])
+	c3 = (z3sum(Vl) >= V) # Max possible value of summing all items must exceed min value
+	c4 = And([Or([And(CW[j] == Wl[i], CWi[j] == i) for i in range(n)] + [And(CW[j] == 0, CWi[j] == -1)]) for j in range(n)])
+	c5 = And([Or([And(CV[j] == Vl[i], CVi[j] == i) for i in range(n)] + [And(CV[j] == 0, CVi[j] == -1)]) for j in range(n)])
+	c6 = (TW <= W)
+	c7 = (TV >= V)
+	c8 = And([Or(CWi[i] != CVi[j], CWi[i] == -1) for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) but = -1 is fine
+	c9 = And([CWi[i] == CVi[i] for i in range(n)])
+	c10 = And([Implies((TW + Wl[i]) <= W, Or([CWi[z] == i for z in range(n)])) for i in range(n)])
+	c11 = And([Implies(CVi[i] != -1, S[i] == 1) for i in range(n)])
+	c12 = And([Implies(CVi[i] == -1, S[i] == 0) for i in range(n)])
+	c13 = (TV == z3sum(CV))
+	c14 = (TW == z3sum(CW))
+	c15 = (Z <= TV)
+	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15)
 
+F = knapsack(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S)
+#F = knapsack_helper(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S)
 print F
 
 ##########################################################
@@ -94,6 +105,8 @@ if isSAT == sat:
     print([m[CV[i]] for i in range(n)])
     print'Weights:'
     print([m[CW[i]] for i in range(n)])
+    print'Z:'
+    print(m[Z])
     print'Total Value'
     print(m[TV])
     print'Total Weight:'
