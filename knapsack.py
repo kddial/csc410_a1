@@ -108,11 +108,8 @@ if isSAT == sat:
     print([m[CVi[i]] for i in range(n)])
     print'Weight Index:'
     print([m[CWi[i]] for i in range(n)])
-    print'Z:'
+    print'Total:'
     print(m[Z])
-    print'Total Value'
-    print(m[TV])
-    print'Total Weight:'
     print(m[TW])
     print'Solution:'
     print([m[S[i]] for i in range(n)])
