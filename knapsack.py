@@ -82,15 +82,16 @@ def common_divisor(items,z,CV,CW):
 	#c11 = And([z3sum(CW) + Wl[i] <= W for i in range(n)])
 	#c11 = And([And(z3sum(CW) + Wl[i] > W, CWi[j] != i) for i in range(n) for j in range(n)])
 	#c11 = And([Or([And(CW[j] == Wl[i], CWi[j] == i) for i in range(n)] + [And(CW[j] == 0, CWi[j] == -1)]) for j in range(n)])
-	c11 = And([And((z3sum(CW) + Wl[i]) >= W, Or([CWi[z] == i for z in range(n)])) for i in range(n)])
-	c12 = And(z == z3sum(CV))
+	c11 = And([Or((z3sum(CW) + Wl[i]) > W, Or([CWi[z] == i for z in range(n)])) for i in range(n)])
+	#c12 = And(z == z3sum(CV))
 	# find not weight
 	# and index does not ewqual something
 	#c10 = And(z == 0)
 	#c10 = True
 	#c10 = And(z > V, z <= z3sum(CV))
 
-	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12)
+	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11)
+	#return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, Or(c11, False), Or(c12, True))
 	#return And(c1, c2, c3, c4, c5, c8, c9, c10, c11, c6,c7,c12)
 
 # and Wi + Wz > W
