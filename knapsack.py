@@ -75,15 +75,20 @@ def common_divisor(items,z,CV,CW):
 	c5 = And([Or([And(CV[j] == Vl[i], CVi[j] == i) for i in range(n)] + [And(CV[j] == 0, CVi[j] == -1)]) for j in range(n)])
 	c6 = (z3sum(CW) <= W)
 	c7 = (z3sum(CV) >= V)
-	c8 = And([CWi[i] == CVi[i] for i in range(n)])
-	c9 = And([CWi[i] != CVi[j] for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n)
-	c10 = And(z == z3sum(CV))
+	c8 = And([CV[i] >= CV[i+1] for i in range(n-1)])
+	c9 = And([CWi[i] != CVi[j] for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) # but = -1 is fine
+	c9 = And([Or(CWi[i] != CVi[j], CWi[i] == -1) for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) # but = -1 is fine
+	c10 = And([CWi[i] == CVi[i] for i in range(n)])
+	c11 = And(z == z3sum(CV))
+	#c10 = And(z == 0)
+	#c10 = True
+	#c10 = And(z > V, z <= z3sum(CV))
 
-	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10)
+	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11)
 
 
-#F = gcd(items,z,CV,CW)
-F = common_divisor(items, z, CV, CW)
+F = gcd(items,z,CV,CW)
+#F = common_divisor(items, z, CV, CW)
 print F
 ##########################################################
 #         Call the solver and print the answer          #
@@ -99,10 +104,15 @@ isSAT = solver.check()
 if isSAT == sat:
     m = solver.model()
     #print m
-    print'Weights:'
-    print([m[CW[i]] for i in range(n)])
     print'Values:'
     print([m[CV[i]] for i in range(n)])
+    print'Weights:'
+    print([m[CW[i]] for i in range(n)])
+    #print m
+    print'Z:'
+    print(m[z])
+    print'K:'
+    print(m[k])
     ##################  Your Code Here  #####################
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
