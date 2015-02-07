@@ -55,20 +55,25 @@ CV = [Int("CV%i" % i) for i in range(n)] # chosen values
 CW = [Int("CW%i" % i) for i in range(n)] # chosen weights
 CVi = [Int("CVi%i" % i) for i in range(n)] # chosen value index
 CWi = [Int("CWi%i" % i) for i in range(n)] # chosen weight index
+TV = Int("TV") # chosen value total
+TW = Int("TW") # chosen weight total
+S = [Int("S%i" % i) for i in range(n)] # solution array
 c1 = And([Vl[i] == items[i][0] for i in range(n)])
 c2 = And([Wl[i] == items[i][1] for i in range(n)])
 c3 = (z3sum(Vl) >= V) # Max possible value of summing all items must exceed min value
 c4 = And([Or([And(CW[j] == Wl[i], CWi[j] == i) for i in range(n)] + [And(CW[j] == 0, CWi[j] == -1)]) for j in range(n)])
 c5 = And([Or([And(CV[j] == Vl[i], CVi[j] == i) for i in range(n)] + [And(CV[j] == 0, CVi[j] == -1)]) for j in range(n)])
-c6 = (z3sum(CW) <= W)
-c7 = (z3sum(CV) >= V)
-c8 = And([CV[i] >= CV[i+1] for i in range(n-1)])
-c9 = And([CWi[i] != CVi[j] for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n)
-c9 = And([Or(CWi[i] != CVi[j], CWi[i] == -1) for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) but = -1 is fine
-c10 = And([CWi[i] == CVi[i] for i in range(n)])
-c11 = And([Or((z3sum(CW) + Wl[i]) > W, Or([CWi[z] == i for z in range(n)])) for i in range(n)])
+c6 = (TW <= W)
+c7 = (TV >= V)
+c8 = And([Or(CWi[i] != CVi[j], CWi[i] == -1) for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) but = -1 is fine
+c9 = And([CWi[i] == CVi[i] for i in range(n)])
+c10 = And([Implies((TW + Wl[i]) <= W, Or([CWi[z] == i for z in range(n)])) for i in range(n)])
+c11 = And([Implies(CVi[i] != -1, S[i] == 1) for i in range(n)])
+c12 = And([Implies(CVi[i] == -1, S[i] == 0) for i in range(n)])
+c13 = (TV == z3sum(CV))
+c14 = (TW == z3sum(CW))
 
-F = And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11)
+F = And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14)
 
 print F
 
@@ -89,6 +94,12 @@ if isSAT == sat:
     print([m[CV[i]] for i in range(n)])
     print'Weights:'
     print([m[CW[i]] for i in range(n)])
+    print'Total Value'
+    print(m[TV])
+    print'Total Weight:'
+    print(m[TW])
+    print'Solution:'
+    print([m[S[i]] for i in range(n)])
     ##################  Your Code Here  #####################
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
@@ -96,57 +107,3 @@ if isSAT == sat:
     print("NP-Completed.")
 else:
     print("This is NP too hard.")
-
-#c3 = (MV == z3sum(Vl))
-#c4 = (MV >= V) # Max possib
-# CV = [Int("CV%i" % i) for i in range(n)]
-# CW = [Int("CW%i" % i) for i in range(n)]
-
-
-# c1 = And([Vl[i] == items[i][0] for i in range(n)])
-# c2 = And([Wl[i] == items[i][1] for i in range(n)])
-# c3 = (z3sum(Vl) >= V) # Max possible value of summing all items must exceed min value
-# c4 = Or([CW[j] == Wl[i] for i in range(n) for j in range(n)] + [CW[i] == 0 for i in range(n)])
-# c5 = Or([CV[j] == Vl[i] for i in range(n) for j in range(n)] + [CV[i] == 0 for i in range(n)])
-# c6 = (z3sum(CW) < W)
-# c7 = (z3sum(CV) > V)
-
-# c2 = Or([Wl[j] == items[i][0]  for i in range(n) for j in range(n)] + [Wl[i] == 0 for i in range(n)])
-# c3 = Or([Vl[j] == items[i][1]  for i in range(n) for j in range(n)] + [Vl[i] == 0 for i in range(n)])
-# c4 = (z3sum(Wl) < W)
-# # c5 = (z3sum(Vl) > V)
-
-# c4 = And([Or([CW[j] == Wl[i] for i in range(n)] + [Wl[j] == 0]) for j in range(n)] + [CW[i] == 0 for i in range(n)])
-# c5 = And([Or([CV[j] == Vl[i] for i in range(n)] + [Vl[j] == 0]) for j in range(n)] + [CV[i] == 0 for i in range(n)])
-
-#And([ for i in range(n)])
-
-#c4 =  [And([CW[i] == Wl[P[j][i]]  for i in range(n) ]) for j in range(len(P))]
-
-# c2 = And([Wl[i] == items[i][1] for i in range(n)])
-# c3 = (z3sum(Vl) >= V) # Max possible value of summing all items must exceed min value
-# c4 = And([Or([CW[j] == Wl[i] for i in range(n)] + [CW[j] == 0]) for j in range(n)])
-# c5 = And([Or([CV[j] == Vl[i] for i in range(n)] + [CV[j] == 0]) for j in range(n)])
-# c6 = (z3sum(CW) < W)
-# c7 = (z3sum(CV) > V)
-# c8 = And([CV[i] != CV[j] for i in range(n)])
-
-#constraints
-#c1 = (z3sum(items[i][0]) >= V) # Max possible value of summing all items must exceed min value
-# c2 = And([Or([Wl[j] == items[i][0]  for i in range(n)] + [Wl[j] == 0]) for j in range(n)])
-# c3 = And([Or([Vl[j] == items[i][1]  for i in range(n)] + [Vl[j] == 0]) for j in range(n)])
-# c4 = (z3sum(Wl) < W)
-# c5 = (z3sum(Vl) > V)
-#c5 = Or([CW[j] == Wl[i] for i in range(n) for j in range(n)])
-
-# c4 = And([Or(And([CW[j] == Wl[i], CWi[j] == i)) for i in range(n)] + [CW[j] == 0]) for j in range(n)])
-# c5 = And([Or(And([CV[j] == Vl[i], CVi[j] == i)) for i in range(n)] + [CV[j] == 0]) for j in range(n)])
-#c4 = And([Or([CW[j] == Wl[i] for i in range(n)] + [CW[j] == 0]) for j in range(n)])
-#c5 = And([Or([CV[j] == Vl[i] for i in range(n)] + [CV[j] == 0]) for j in range(n)])
-
-
-#from itertools import permutations
-#items = range(n)
-#P = []
-#for x in permutations(items):
-#    P.append(list(x))
