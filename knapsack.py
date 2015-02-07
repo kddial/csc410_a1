@@ -77,15 +77,14 @@ def knapsack_helper(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S):
 	c8 = And([Or(CWi[i] != CVi[j], CWi[i] == -1) for i in range(n) for j in range_j(n,i)]) # The helper takes i out of range(n) but = -1 is fine
 	c9 = And([CWi[i] == CVi[i] for i in range(n)])
 	c10 = And([Implies((TW + Wl[i]) <= W, Or([CWi[z] == i for z in range(n)])) for i in range(n)])
-	c11 = And([Implies(CVi[i] != -1, S[i] == 1) for i in range(n)])
-	c12 = And([Implies(CVi[i] == -1, S[i] == 0) for i in range(n)])
+	c11 = And([Implies(CVi[i] == j, S[j] == 1) for i in range(n) for j in range(n)])
+	c12 = And([Implies(And([CVi[j] != i for j in range(n)]), S[i] == 0) for i in range(n)])
 	c13 = (TV == z3sum(CV))
 	c14 = (TW == z3sum(CW))
 	c15 = (Z <= TV)
 	return And(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15)
 
 F = knapsack(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S)
-#F = knapsack_helper(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S)
 print F
 
 ##########################################################
@@ -105,6 +104,10 @@ if isSAT == sat:
     print([m[CV[i]] for i in range(n)])
     print'Weights:'
     print([m[CW[i]] for i in range(n)])
+    print'Value Index:'
+    print([m[CVi[i]] for i in range(n)])
+    print'Weight Index:'
+    print([m[CWi[i]] for i in range(n)])
     print'Z:'
     print(m[Z])
     print'Total Value'
