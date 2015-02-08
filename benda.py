@@ -77,7 +77,7 @@ game_state_initial = [ X[0][i] == start[i] for i in range(n_bodies) ]
 
 # The core constraints
 reduce_c = [
-	# If the game state equals the end state, then the problem is satisfied
+	# If the previous game state equals the end state, then the problem is satisfied
 	If(
 		And([X[k-1][z]==end[z] for z in range(n_bodies)]),
 
@@ -94,7 +94,7 @@ reduce_c = [
 			ForAll(s, ForAll(t, Implies(
 				And(
 					s != t, s >= 0, s < n_bodies, t >= 0, t < n_bodies, 
-					u != s, u != t, i >= 0, u < n_bodies),
+					u != s, u != t, u >= 0, u < n_bodies),
 				And(
 					X[k][s] == X[k-1][t],
 					X[k][t] == X[k-1][s],
@@ -121,12 +121,12 @@ print("------------------")
 print("GAME initial:")
 print game_state_initial
 
-print("------------------")
-print("reduce C:")
-print reduce_c
 # The final formula going in. Change this to your actual formula
 F = start_const + end_const + game_state_initial + reduce_c
 
+print("------------------")
+print("Formula:")
+print F
 ##########################################################
 #         Call the solver and print the answer          #
 #########################################################
@@ -155,9 +155,8 @@ if isSAT == sat:
     print("----------------------")
     print("X: ")
     print([m[X[i]] for i in range(total_states)])
-
-    print("----------------------")
     print("Bender's back!.")
 else:
     print("Hey! Don't violate Keeler's Theorem.")
+
 
