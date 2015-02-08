@@ -53,7 +53,6 @@ F = And(SC, c, EC)
 print("------------------")
 print("F:")
 print F
-print ST[0][0][0]
 
 ##########################################################
 #         Call the solver and print the answer          #
