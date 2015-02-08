@@ -18,9 +18,10 @@ n = len(in_list)
 #     Helper variables, functions, and Z3 variables     #
 ######################################################### 
 
-# ForAll variable
+# Constraint variables
 s = Int('s')
 t = Int('t')
+u = Int('u')
 
 # Two extra bodies to use for swapping.
 # Will be in index n+1, n+2.
@@ -36,7 +37,7 @@ total_states = n_bodies * (n_bodies - 1) / 2
 # Keep track of all the bodies in a game state with 
 # variable X. X[k] represents a z3 array of the minds at
 # game state k. 
-X = [ Array("x_%s" % i, IntSort(), IntSort()) for i in range(n_bodies) ]
+X = [ Array("x_%s" % i, IntSort(), IntSort()) for i in range(total_states) ]
 
 # Keep track of all the swapped pairs that occured
 # at each game state. Note, since only 1 swap occurs at each game state,
@@ -49,26 +50,14 @@ X = [ Array("x_%s" % i, IntSort(), IntSort()) for i in range(n_bodies) ]
 # Example: 
 #       Swap[2][0] = [0,1] => 
 #		Swap_zero[2][0]=0, Swap_one[2][0]=1
-Swap_zero = [ Array("swap_zero_%s" % i, IntSort(), IntSort()) for i in range(n_bodies) ]
-Swap_one = [ Array("swap_one_%s" % i, IntSort(), IntSort()) for i in range(n_bodies) ]
+Swap_zero = [ Array("swap_zero_%s" % i, IntSort(), IntSort()) for i in range(total_states) ]
+Swap_one = [ Array("swap_one_%s" % i, IntSort(), IntSort()) for i in range(total_states) ]
 
 # Variables that represent the input values
 # and the expected end values. The end values
 # are where each mind is in the correct body.
 start = [ Int("start_%s" % i) for i in range(n_bodies)]
 end = [ Int("end_%s" % i) for i in range(n_bodies)]
-
-# Function that pops 2 indexes from a range(n).
-# Indices cannot equal each other.
-def range_pop2(n, i, j):
-    result = range(n)
-    if j>i:
-    	result.pop(j)
-    	result.pop(i)
-    else:
-    	result.pop(i)
-    	result.pop(j)
-    return result
 
 #########################################################
 #        The actual constraints for the problem         #
@@ -89,7 +78,8 @@ game_state_initial = [ X[0][i] == start[i] for i in range(n_bodies) ]
 # The core constraints
 reduce_c = [
 	# If the game state equals the end state, then the problem is satisfied
-	If(X[k][z]==end[z],
+	If(
+		And([X[k-1][z]==end[z] for z in range(n_bodies)]),
 
 		# If true, then the game state should stay the same
 		# until all the moves are used
@@ -101,43 +91,38 @@ reduce_c = [
 			# s and t are indicies to be switched. They can not equal each other.
 			# Set X[s] in current game state k, to equal X[t] in game state k-1, 
 			# and vice versa to swap the values.
-
-			# not tested
 			ForAll(s, ForAll(t, Implies(
 				And(
 					s != t, s >= 0, s < n_bodies, t >= 0, t < n_bodies, 
-					i != s, i != t, i >= 0, i < n_bodies),
+					u != s, u != t, i >= 0, u < n_bodies),
 				And(
 					X[k][s] == X[k-1][t],
 					X[k][t] == X[k-1][s],
-					X[k][i] == X[k-1][i]
-				)))),
+					X[k][u] == X[k-1][u]
+				))))
+			,
 
 			# Make sure the swapped values have not been used in the
 			# previous game state.
 			# We only have to check the swaps from the previous game state 
 			# because every game state is an accumulation of the previous swaps.
-			# We make sure that (s,t) or (t,s) does not match any previous swaps
-			# not tested
-			Or([
-				And([Swap_zero[k-1][i] != s] + [Swap_one[k-1][i] != t] for i in range(k)),
-				And([Swap_zero[k-1][i] != t] + [Swap_one[k-1][i] != s] for i in range(k))]),
+			# We make sure that (s,t) and (t,s) does not match any previous swaps
+			And([And(Swap_zero[k-1][i] != s, Swap_one[k-1][i] != t) for i in range(k+1)]),
+			And([And(Swap_zero[k-1][i] != t, Swap_one[k-1][i] != s) for i in range(k+1)]),
 
 			# Save the swapped value into z3 arrays Swap_zero and Swap_one.
-			# not tested
-			And(Swap_zero[k]==s, Swap_zero[k]==t)
+			And(Swap_zero[k][k]==s, Swap_one[k][k]==t)
 		)
 	)
-	for k in range(total_states) for z in range(n_bodies)]
+	# for k in range(1,total_states)]
+	for k in range(1,total_states)]
+
 
 print("------------------")
 print("reduce C:")
 print reduce_c
 # The final formula going in. Change this to your actual formula
-F = start_const + end_const
-print("------------------")
-print("F:")
-print F
+F = start_const + end_const + reduce_c
 
 ##########################################################
 #         Call the solver and print the answer          #
@@ -156,10 +141,19 @@ if isSAT == sat:
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
     print("----------------------")
-    print("X: ")
-    print([m[X[i]] for i in range(n)])
+    print("Swap_zero: ")
+    print([m[Swap_zero[i]] for i in range(total_states)])
     print("----------------------")
+    print("Swap_one: ")
+    print([m[Swap_one[i]] for i in range(total_states)])
+    print("----------------------")
+    print "Model:"
+    print m
+    print("----------------------")
+    print("X: ")
+    print([m[X[i]] for i in range(total_states)])
 
+    print("----------------------")
     print("Bender's back!.")
 else:
     print("Hey! Don't violate Keeler's Theorem.")
