@@ -18,6 +18,9 @@ n = len(in_list)
 #     Helper variables, functions, and Z3 variables     #
 ######################################################### 
 
+# ForAll variable
+#q = Int('q')
+
 # Two extra bodies to use for swapping.
 # Will be in index n+1, n+2.
 n_bodies = n+2
@@ -79,22 +82,43 @@ start_const = start_const + [start[n] == n, start[n+1] == n+1]
 # end[i] == i.
 end_const = [end[i] == i for i in range(n_bodies)]
 
+# The initial game state
+game_state_initial = [ X[0][i] == start[i] for i in range(n_bodies) ]
+
 # The core constraints
-# reduce_c = [
-# 	# If the game state equals the end state, then the problem is satisfied
-# 	If(X[k][z]==end[z],
+reduce_c = [
+	# If the game state equals the end state, then the problem is satisfied
+	If(X[k][z]==end[z],
 
+		# If true, then the game state should stay the same
+		# until all the moves are used
+		And(X[k][i] == X[k-1][i] for i in range(n_bodies)), # not tested
+		
+		And(
+			# If false, then set constraints to swap bodies.
+			# Constraints breakdown:
+			# s and t are indicies to be switched. They can not equal each other.
+			# Set X[s] in current game state k, to equal X[t] in game state k-1, 
+			# and vice versa to swap the values.
 
-# 		)
-# 	for k in range(1,total_states) for z in range(n_bodies)]
+			# not tested
+			ForAll(s, ForAll(t, Implies(And(
+				s != t, s >= 0, s < n_bodies, t >= 0, t < n_bodies, 
+				i != s, i != t, i >= 0, i < n_bodies, 
+				X[k][s] == X[k-1][t],
+				X[k][t] == X[k-1][s],
+				X[k][i] == X[k-1][i]
+				))))
 
+			# Make sure the swapped values have not been used in the
+			# previous game state
+			# TODO
 
-
-
-
-
-
-
+			# Save the swapped value into z3 arrays Swap_zero and Swap_one
+			# TODO
+			)
+	)
+	for k in range(1,2) for z in range(n_bodies)]
 
 
 # The final formula going in. Change this to your actual formula
@@ -119,12 +143,6 @@ if isSAT == sat:
     ##################  Your Code Here  #####################
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
-    print("----------------------")
-    print("Start: ")
-    print([m[start[i]] for i in range(n)])
-    print("----------------------")
-    print("End: ")
-    print([m[end[i]] for i in range(n)])
     print("----------------------")
     print("X: ")
     print([m[X[i]] for i in range(n)])
