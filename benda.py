@@ -21,31 +21,22 @@ n_extra_range = range(n+2)
 
 print in_list
 
-swapped_pairs = []
+ST = [ Array("ST%s" % i, IntSort(), IntSort()) for i in range(100) ]
+S = [Int("S%s" % i) for i in n_extra_range]
+E = [Int("E%s" % i) for i in n_extra_range]
+HS = [Int("HS" + str(i) + "" + str(j)) for i in n_extra_range for j in n_extra_range]
 
-start = [ Int("start_%s" % i) for i in n_extra_range]
-end = [ Int("end_%s" % i) for i in n_extra_range]
+# Set S to equal input
+SC = And([S[i] == in_list[i] for i in range(n)] + [S[n] == n, S[n+1] == n+1])
 
-print start
-print end
-
-# Set start to equal input
-start_const = [start[i] == in_list[i] for i in range(n)]
-start_const = start_const + [start[n] == n, start[n+1] == n+1]
+#c1 = And([HS[i] == 0 for i in range(len(HS))])
+#c1 = Or([E[i] == S[j] for i in n_extra_range for j in n_extra_range])
+c = (True)
 
 # Set end to equal correct bodies
 # Since body_i must contain mind_i, then we can just set 
 # the constraint that the end[i] == i
-end_const = [end[i] == i for i in n_extra_range]
-
-
-
-swap_const = []
-
-
-
-
-
+EC = And([E[i] == i for i in n_extra_range])
 
 ##################  Your Code Here  #####################
 
@@ -58,10 +49,11 @@ swap_const = []
 ##################  Your Code Here  #####################
 
 # The final formula going in. Change this to your actual formula
-F = start_const + end_const
+F = And(SC, c, EC)
 print("------------------")
 print("F:")
 print F
+print ST[0][0][0]
 
 ##########################################################
 #         Call the solver and print the answer          #
@@ -80,11 +72,11 @@ if isSAT == sat:
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
     print("----------------------")
-    print("Start: ")
-    print([m[start[i]] for i in range(n)])
+    print("S: ")
+    print([m[S[i]] for i in range(n)])
     print("----------------------")
     print("End: ")
-    print([m[end[i]] for i in range(n)])
+    print([m[E[i]] for i in range(n)])
     print("----------------------")
     print("Bender's back!.")
 else:

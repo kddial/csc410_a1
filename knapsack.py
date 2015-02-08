@@ -23,16 +23,6 @@ items = map(lambda p: map(int, p.split(",")), items)
 #     Helper variables, functions, and Z3 variables     #
 ######################################################### 
 
-
-##################  Your Code Here  #####################
-
-
-#########################################################
-#        The actual constraints for the problem         #
-#########################################################
-
-##################  Your Code Here  #####################
-
 # Setup for python variables
 n = len(items)
 
@@ -63,6 +53,10 @@ def range_j(n, j):
 def knapsack(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S): # Maximizing Z
     return And(knapsack_helper(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S), 
                ForAll(K, Implies(knapsack_helper(items, K, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S), K <= Z)))
+
+#########################################################
+#        The actual constraints for the problem         #
+#########################################################
 
 def knapsack_helper(items, Z, Vl, Wl, CV, CW, CVi, CWi, TV, TW, S):
 	c1 = And([Vl[i] == items[i][0] for i in range(n)]) # Loading in value values
@@ -97,27 +91,6 @@ isSAT = solver.check()
 # print the result
 if isSAT == sat:
     m = solver.model()
-   	# print F
-    # print'Values:'
-    # print([m[Vl[i]] for i in range(n)])
-    # print'Weights:'
-    # print([m[Wl[i]] for i in range(n)])
-    # print'Chosen Values:'
-    # print([m[CV[i]] for i in range(n)])
-    # print'Chosen Weights:'
-    # print([m[CW[i]] for i in range(n)])
-    # print'Value Index:'
-    # print([m[CVi[i]] for i in range(n)])
-    # print'Weight Index:'
-    # print([m[CWi[i]] for i in range(n)])
-    # print'Total:'
-    # print(m[Z])
-    # print'Total Value'
-    # print(m[TV])
-    # print'Total Weight:'
-    # print(m[TW])
-    # print'Solution:'
-    # print([m[S[i]] for i in range(n)])
     print([m[S[i]] for i in range(n)])
     print(m[Z])
     print(m[TW])
