@@ -42,10 +42,11 @@ for x in permutations(items):
 X_const = ([X[i] == in_list[i] for i in range(n)])
 
 # Set Y constraints
-Y_const1 = ([(Y[i] <= Y[i+1]) for i in range(n-1)])
-Y_const2 =  [And([Y[i] == X[P[j][i]]  for i in range(n) ]) for j in range(len(P))]
+Y_const1 = ([(Y[i] <= Y[i+1]) for i in range(n-1)]) # Sorting constraint
+Y_const2 =  [And([Y[i] == X[P[j][i]]  for i in range(n) ]) for j in range(len(P))] # Producing every possible permutation that might exist for the sorted list
 
 F = And(X_const + Y_const1 + [Or(Y_const2)])
+
 #########################################################
 #         Call the solver and print the answer          #
 #########################################################
