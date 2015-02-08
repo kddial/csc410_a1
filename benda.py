@@ -19,7 +19,8 @@ n = len(in_list)
 ######################################################### 
 
 # ForAll variable
-#q = Int('q')
+s = Int('s')
+t = Int('t')
 
 # Two extra bodies to use for swapping.
 # Will be in index n+1, n+2.
@@ -102,13 +103,15 @@ reduce_c = [
 			# and vice versa to swap the values.
 
 			# not tested
-			ForAll(s, ForAll(t, Implies(And(
-				s != t, s >= 0, s < n_bodies, t >= 0, t < n_bodies, 
-				i != s, i != t, i >= 0, i < n_bodies, 
-				X[k][s] == X[k-1][t],
-				X[k][t] == X[k-1][s],
-				X[k][i] == X[k-1][i]
-				))))
+			ForAll(s, ForAll(t, Implies(
+				And(
+					s != t, s >= 0, s < n_bodies, t >= 0, t < n_bodies, 
+					i != s, i != t, i >= 0, i < n_bodies),
+				And(
+					X[k][s] == X[k-1][t],
+					X[k][t] == X[k-1][s],
+					X[k][i] == X[k-1][i]
+				)))),
 
 			# Make sure the swapped values have not been used in the
 			# previous game state.
@@ -116,16 +119,16 @@ reduce_c = [
 			# because every game state is an accumulation of the previous swaps.
 			# We make sure that (s,t) or (t,s) does not match any previous swaps
 			# not tested
-			Or(
-				And([Swap_zero[k-1][i] != s, Swap_one[k-1][i] != t for i in range(k)]),
-				And([Swap_zero[k-1][i] != t, Swap_one[k-1][i] != s for i in range(k)]))
+			Or([
+				And([Swap_zero[k-1][i] != s] + [Swap_one[k-1][i] != t] for i in range(k)),
+				And([Swap_zero[k-1][i] != t] + [Swap_one[k-1][i] != s] for i in range(k))]),
 
 			# Save the swapped value into z3 arrays Swap_zero and Swap_one.
 			# not tested
 			And(Swap_zero[k]==s, Swap_zero[k]==t)
-			)
+		)
 	)
-	for k in range(n_bodies)]
+	for k in range(total_states) for z in range(n_bodies)]
 
 print("------------------")
 print("reduce C:")
