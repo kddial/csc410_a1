@@ -117,12 +117,15 @@ reduce_c = [
 	# for k in range(1,total_states)]
 	for k in range(1,total_states)]
 
+print("------------------")
+print("GAME initial:")
+print game_state_initial
 
 print("------------------")
 print("reduce C:")
 print reduce_c
 # The final formula going in. Change this to your actual formula
-F = start_const + end_const + reduce_c
+F = start_const + end_const + game_state_initial + reduce_c
 
 ##########################################################
 #         Call the solver and print the answer          #
