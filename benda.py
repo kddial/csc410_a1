@@ -92,8 +92,8 @@ reduce_c = [
 
 		# If true, then the game state should stay the same
 		# until all the moves are used
-		And(X[k][i] == X[k-1][i] for i in range(n_bodies)), # not tested
-		
+		And([X[k][i] == X[k-1][i] for i in range(n_bodies)]),
+
 		And(
 			# If false, then set constraints to swap bodies.
 			# Constraints breakdown:
@@ -111,16 +111,25 @@ reduce_c = [
 				))))
 
 			# Make sure the swapped values have not been used in the
-			# previous game state
-			# TODO
+			# previous game state.
+			# We only have to check the swaps from the previous game state 
+			# because every game state is an accumulation of the previous swaps.
+			# We make sure that (s,t) or (t,s) does not match any previous swaps
+			# not tested
+			Or(
+				And([Swap_zero[k-1][i] != s, Swap_one[k-1][i] != t for i in range(k)]),
+				And([Swap_zero[k-1][i] != t, Swap_one[k-1][i] != s for i in range(k)]))
 
-			# Save the swapped value into z3 arrays Swap_zero and Swap_one
-			# TODO
+			# Save the swapped value into z3 arrays Swap_zero and Swap_one.
+			# not tested
+			And(Swap_zero[k]==s, Swap_zero[k]==t)
 			)
 	)
-	for k in range(1,2) for z in range(n_bodies)]
+	for k in range(n_bodies)]
 
-
+print("------------------")
+print("reduce C:")
+print reduce_c
 # The final formula going in. Change this to your actual formula
 F = start_const + end_const
 print("------------------")
