@@ -13,43 +13,92 @@ in_list = _in.readline().strip("[]\n").split(",")
 in_list = [i for i in in_list if i!='']
 in_list = map(int, in_list)
 n = len(in_list)
-n_extra_range = range(n+2)
 
 #########################################################
 #     Helper variables, functions, and Z3 variables     #
 ######################################################### 
 
-print in_list
+# Two extra bodies to use for swapping.
+# Will be in index n+1, n+2.
+n_bodies = n+2
 
-ST = [ Array("ST%s" % i, IntSort(), IntSort()) for i in range(100) ]
-S = [Int("S%s" % i) for i in n_extra_range]
-E = [Int("E%s" % i) for i in n_extra_range]
-HS = [Int("HS" + str(i) + "" + str(j)) for i in n_extra_range for j in n_extra_range]
+# Total number of game states is equal
+# to the total possible pair combinations. Which 
+# is equal to (n Choose k) where n is the number of 
+# bodies and k = 2. Therefore total game states is 
+# n*(n-1)/2.
+total_states = n_bodies * (n_bodies - 1) / 2
 
-# Set S to equal input
-SC = And([S[i] == in_list[i] for i in range(n)] + [S[n] == n, S[n+1] == n+1])
+# Keep track of all the bodies in a game state with 
+# variable X. X[k] represents a z3 array of the minds at
+# game state k. 
+X = [ Array("x_%s" % i, IntSort(), IntSort()) for i in range(n_bodies) ]
 
-#c1 = And([HS[i] == 0 for i in range(len(HS))])
-#c1 = Or([E[i] == S[j] for i in n_extra_range for j in n_extra_range])
-c = (True)
+# Keep track of all the swapped pairs that occured
+# at each game state. Note, since only 1 swap occurs at each game state,
+# there can only be k swaps at game state k. 
+# Example: Swap[0]=[], Swap[1]=[[0,1]], Swap[2]=[[0,1],[1,2]]
 
-# Set end to equal correct bodies
-# Since body_i must contain mind_i, then we can just set 
-# the constraint that the end[i] == i
-EC = And([E[i] == i for i in n_extra_range])
+# Ideally I would like to represent each Z3 value as a pair, but I am
+# restricted to integers, so as an alternative I created two variables
+# to represent index 0 and index 1 of each pair.
+# Example: 
+#       Swap[2][0] = [0,1] => 
+#		Swap_zero[2][0]=0, Swap_one[2][0]=1
+Swap_zero = [ Array("swap_zero_%s" % i, IntSort(), IntSort()) for i in range(n_bodies) ]
+Swap_one = [ Array("swap_one_%s" % i, IntSort(), IntSort()) for i in range(n_bodies) ]
 
-##################  Your Code Here  #####################
+# Variables that represent the input values
+# and the expected end values. The end values
+# are where each mind is in the correct body.
+start = [ Int("start_%s" % i) for i in range(n_bodies)]
+end = [ Int("end_%s" % i) for i in range(n_bodies)]
 
+# Function that pops 2 indexes from a range(n).
+# Indices cannot equal each other.
+def range_pop2(n, i, j):
+    result = range(n)
+    if j>i:
+    	result.pop(j)
+    	result.pop(i)
+    else:
+    	result.pop(i)
+    	result.pop(j)
+    return result
 
 #########################################################
 #        The actual constraints for the problem         #
 #########################################################
 
+# Set start to equal input values
+start_const = [start[i] == in_list[i] for i in range(n)]
+start_const = start_const + [start[n] == n, start[n+1] == n+1]
 
-##################  Your Code Here  #####################
+# Set end to equal the minds in the correct bodies.
+# Since body_i must contain mind_i, then we can set
+# end[i] == i.
+end_const = [end[i] == i for i in range(n_bodies)]
+
+# The core constraints
+# reduce_c = [
+# 	# If the game state equals the end state, then the problem is satisfied
+# 	If(X[k][z]==end[z],
+
+
+# 		)
+# 	for k in range(1,total_states) for z in range(n_bodies)]
+
+
+
+
+
+
+
+
+
 
 # The final formula going in. Change this to your actual formula
-F = And(SC, c, EC)
+F = start_const + end_const
 print("------------------")
 print("F:")
 print F
@@ -71,12 +120,16 @@ if isSAT == sat:
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
     print("----------------------")
-    print("S: ")
-    print([m[S[i]] for i in range(n)])
+    print("Start: ")
+    print([m[start[i]] for i in range(n)])
     print("----------------------")
     print("End: ")
-    print([m[E[i]] for i in range(n)])
+    print([m[end[i]] for i in range(n)])
     print("----------------------")
+    print("X: ")
+    print([m[X[i]] for i in range(n)])
+    print("----------------------")
+
     print("Bender's back!.")
 else:
     print("Hey! Don't violate Keeler's Theorem.")
