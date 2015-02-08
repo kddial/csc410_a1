@@ -40,18 +40,19 @@ total_states = n_bodies * (n_bodies - 1) / 2
 X = [ Array("x_%s" % i, IntSort(), IntSort()) for i in range(total_states) ]
 
 # Keep track of all the swapped pairs that occured
-# at each game state. Note, since only 1 swap occurs at each game state,
-# there can only be k swaps at game state k. 
-# Example: Swap[0]=[], Swap[1]=[[0,1]], Swap[2]=[[0,1],[1,2]]
+# at each game state. Note, since only one swap occurs
+# during each game state, we will use a 1D array where
+# the k index represents the swap on the k-th game state.
 
 # Ideally I would like to represent each Z3 value as a pair, but I am
 # restricted to integers, so as an alternative I created two variables
 # to represent index 0 and index 1 of each pair.
 # Example: 
-#       Swap[2][0] = [0,1] => 
-#		Swap_zero[2][0]=0, Swap_one[2][0]=1
-Swap_zero = [ Array("swap_zero_%s" % i, IntSort(), IntSort()) for i in range(total_states) ]
-Swap_one = [ Array("swap_one_%s" % i, IntSort(), IntSort()) for i in range(total_states) ]
+# [(1,2), (3,4)] <=>
+#  swap_zero = [1,3]
+#  swap_one =  [2,4]
+Swap_zero = [ Int("swap_zero_%s" % i) for i in range(total_states)]
+Swap_one = [ Int("swap_one_%s" % i) for i in range(total_states)]
 
 # Variables that represent the input values
 # and the expected end values. The end values
@@ -75,6 +76,17 @@ end_const = [end[i] == i for i in range(n_bodies)]
 # The initial game state
 game_state_initial = [ X[0][i] == start[i] for i in range(n_bodies) ]
 
+# Set the intial swap values. The first swap would be
+# the bad swap that rearranged the minds into the wrong
+# bodies. We had to initialize this swap because
+# we have to keep a log of all the past swaps to satisfy
+# the constraint of switching between two bodies only once.
+# If this swap was not initialized, then the solver would fine
+# a solution in one swap, which was the reverse of the bad swap.
+swap_zero_initial = [ Swap_zero[0] == start[0] ]
+swap_one_initial = [ Swap_one[0] == start[1] ]
+swap_const = swap_zero_initial + swap_one_initial
+
 # The core constraints
 reduce_c = [
 	# If the previous game state equals the end state, then the problem is satisfied
@@ -82,51 +94,48 @@ reduce_c = [
 		And([X[k-1][z]==end[z] for z in range(n_bodies)]),
 
 		# If true, then the game state should stay the same
-		# until all the moves are used
+		# until all the moves are used.
 		And([X[k][i] == X[k-1][i] for i in range(n_bodies)]),
 
 		And(
 			# If false, then set constraints to swap bodies.
 			# Constraints breakdown:
 			# s and t are indicies to be switched. They can not equal each other.
-			# Set X[s] in current game state k, to equal X[t] in game state k-1, 
-			# and vice versa to swap the values.
-			ForAll(s, ForAll(t, Implies(
-				And(
-					s != t, s >= 0, s < n_bodies, t >= 0, t < n_bodies, 
-					u != s, u != t, u >= 0, u < n_bodies),
-				And(
-					X[k][s] == X[k-1][t],
-					X[k][t] == X[k-1][s],
-					X[k][u] == X[k-1][u]
-				))))
-			,
+			ForAll(s, 
+				ForAll(t, 
+					Implies(
+						And(
+							s >= 0, s < n_bodies, 
+							t >= 0, t < n_bodies, 
+							u >= 0, u < n_bodies,
+							s != t, u != s, u != t
+						),
+						And(
+							# Set X[s] in current game state k, to equal X[t] in game state k-1, 
+							# and vice versa to swap the values.
+							X[k][s] == X[k-1][t],
+							X[k][t] == X[k-1][s],
+							X[k][u] == X[k-1][u],
 
-			# Make sure the swapped values have not been used in the
-			# previous game state.
-			# We only have to check the swaps from the previous game state 
-			# because every game state is an accumulation of the previous swaps.
-			# We make sure that (s,t) and (t,s) does not match any previous swaps
-			And([And(Swap_zero[k-1][i] != s, Swap_one[k-1][i] != t) for i in range(k+1)]),
-			And([And(Swap_zero[k-1][i] != t, Swap_one[k-1][i] != s) for i in range(k+1)]),
-
-			# Save the swapped value into z3 arrays Swap_zero and Swap_one.
-			And(Swap_zero[k][k]==s, Swap_one[k][k]==t)
+							# Make sure the swapped values have not been used in any
+							# previous game state.
+							# We make sure that (s,t) and (t,s) does not match any previous swaps
+							And([And(Swap_zero[j] != s, Swap_one[j] != t) for j in range(k)]),
+							And([And(Swap_zero[j] != t, Swap_one[j] != s) for j in range(k)]),
+							
+							# Save the swapped value into z3 arrays Swap_zero and Swap_one.
+							And(Swap_zero[k]==s, Swap_one[k]==t)
+						)
+					)
+				)
+			)
 		)
 	)
-	# for k in range(1,total_states)]
 	for k in range(1,total_states)]
 
-print("------------------")
-print("GAME initial:")
-print game_state_initial
-
 # The final formula going in. Change this to your actual formula
-F = start_const + end_const + game_state_initial + reduce_c
+F = start_const + end_const + game_state_initial + swap_const + reduce_c
 
-print("------------------")
-print("Formula:")
-print F
 ##########################################################
 #         Call the solver and print the answer          #
 #########################################################
@@ -143,20 +152,12 @@ if isSAT == sat:
     ##################  Your Code Here  #####################
     #           print the answer using the model            #
     ##################  Your Code Here  #####################
-    print("----------------------")
-    print("Swap_zero: ")
-    print([m[Swap_zero[i]] for i in range(total_states)])
-    print("----------------------")
-    print("Swap_one: ")
-    print([m[Swap_one[i]] for i in range(total_states)])
-    print("----------------------")
-    print "Model:"
-    print m
-    print("----------------------")
-    print("X: ")
-    print([m[X[i]] for i in range(total_states)])
     print("Bender's back!.")
+    # Contruct pair list
+    temp = [m[Swap_zero[i]] for i in range(total_states)]
+    temp2 = [m[Swap_one[i]] for i in range(total_states)]
+    swap_zero_result = [(temp[i], temp2[i]) for i in range(total_states)]
+    print swap_zero_result[1:]
 else:
     print("Hey! Don't violate Keeler's Theorem.")
-
 
