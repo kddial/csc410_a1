@@ -1,6 +1,11 @@
 # csc410_a1
 z3 with python
 
-Example code:
-  1. https://z3.codeplex.com/SourceControl/latest#examples/python/example.py
-  2. http://lauri.xn--vsandi-pxa.com/tub/qaoes/z3.html
+Question 1:
+Sorting using Z3
+
+Question 2:
+Knapsack problem
+
+Question 3:
+"The Prisoner of Benda" problem
